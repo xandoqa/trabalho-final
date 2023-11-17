@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char proprietario[50];
+    char combustivel[20];
+    char modelo[50];
+    char cor[20];
+    char chassi[20];
+    int ano;
+    char placa[8];
+} Veiculo;
+
+typedef struct No {
+    Veiculo veiculo;
+    struct No* proximo;
+} No;
+
+No* inicializarLista() {
+    return NULL;
+}
+
+No* inserirVeiculo(No* lista, Veiculo veiculo) {
+    No* novoNo = (No*)malloc(sizeof(No));
+    if (novoNo == NULL) {
+        printf("Erro ao alocar memória.\n");
+        exit(1);
+    }
+
+    novoNo->veiculo = veiculo;
+    novoNo->proximo = lista;
+
+    return novoNo;
+}
+
+void listarDiesel2010(No* lista) {
+    printf("Proprietários de carros do ano 2010 ou posterior movidos a diesel:\n");
+    while (lista != NULL) {
+        if (lista->veiculo.ano >= 2010 && strcmp(lista->veiculo.combustivel, "diesel") == 0) {
+            printf("%s\n", lista->veiculo.proprietario);
+        }
+        lista = lista->proximo;
+    }
+}
+
+void listarPlacasJ(No* lista) {
+    printf("Placas que começam com 'J' e terminam com 0, 2, 4 ou 7 e seus proprietários:\n");
+    while (lista != NULL) {
+        if (lista->veiculo.placa[0] == 'J' &&
+            (lista->veiculo.placa[6] == '0' || lista->veiculo.placa[6] == '2' || 
+             lista->veiculo.placa[6] == '4' || lista->veiculo.placa[6] == '7')) {
+            printf("Placa: %s, Proprietário: %s\n", lista->veiculo.placa, lista->veiculo.proprietario);
+        }
+        lista = lista->proximo;
+    }
+}
+
+void listarModeloCorVogalSomaPar(No* lista) {
+    printf("Modelo e cor de veículos com placas que têm segunda letra vogal e soma dos dígitos é par:\n");
+    while (lista != NULL) {
+        char segundaLetraPlaca = lista->veiculo.placa[1];
+        int somaDigitos = 0;
+        for (int i = 0; i < 7; i++) {
+            if (isdigit(lista->veiculo.placa[i])) {
+                somaDigitos += lista->veiculo.placa[i] - '0';
+            }
+        }
+
+        if (strchr("aeiouAEIOU", segundaLetraPlaca) != NULL && somaDigitos % 2 == 0) {
+            printf("Modelo: %s, Cor: %s\n", lista->veiculo.modelo, lista->veiculo.cor);
+        }
+        lista = lista->proximo;
+    }
+}
+
+void trocarProprietario(No* lista, char chassi[]) {
+    while (lista != NULL) {
+        if (strstr(lista->veiculo.chassi, chassi) != NULL) {
+            int temZeroNaPlaca = 0;
+            for (int i = 0; i < 7; i++) {
+                if (lista->veiculo.placa[i] == '0') {
+                    temZeroNaPlaca = 1;
+                    break;
+                }
+            }
+
+            if (!temZeroNaPlaca) {
+                printf("Digite o novo proprietário para o veículo com chassi %s: ", lista->veiculo.chassi);
+                scanf(" %[^\n]", lista->veiculo.proprietario);
+                printf("Proprietário atualizado com sucesso!\n");
+                return;
+            } else {
+                printf("Não é possível trocar o proprietário para veículos com dígitos iguais a zero na placa.\n");
+                return;
+            }
+        }
+        lista = lista->proximo;
+    }
+
+    printf("Veículo com chassi %s não encontrado.\n", chassi);
+}
+
+void liberarLista(No* lista) {
+    while (lista != NULL) {
+        No* temp = lista;
+        lista = lista->proximo;
+        free(temp);
+    }
+}
+
+int main() {
+    No* listaVeiculos = inicializarLista();
+
+    Veiculo veiculo1 = {.ano = 2012, .combustivel = "diesel", .placa = "J1234XX", .proprietario = "João", .modelo = "Carro1", .cor = "Preto", .chassi = "ABC123"};
+    Veiculo veiculo2 = {.ano = 2010, .combustivel = "gasolina", .placa = "J5678YY", .proprietario = "Maria", .modelo = "Carro2", .cor = "Azul", .chassi = "DEF456"};
+    Veiculo veiculo3 = {.ano = 2015, .combustivel = "diesel", .placa = "K9876ZZ", .proprietario = "Pedro", .modelo = "Carro3", .cor = "Branco", .chassi = "GHI789"};
+
+    listaVeiculos = inserirVeiculo(listaVeiculos, veiculo1);
+    listaVeiculos = inserirVeiculo(listaVeiculos, veiculo2);
+    listaVeiculos = inserirVeiculo(listaVeiculos, veiculo3);
+
+    listarDiesel2010(listaVeiculos);
+    listarPlacasJ(listaVeiculos);
+    listarModeloCorVogalSomaPar(listaVeiculos);
+
+    char chassiTrocar[] = "DEF456";
+    trocarProprietario(listaVeiculos, chassiTrocar);
+
+    liberarLista(listaVeiculos);
+
+   
+}
